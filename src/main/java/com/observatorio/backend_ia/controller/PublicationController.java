@@ -1,41 +1,45 @@
 package com.observatorio.backend_ia.controller;
 
-import com.observatorio.backend_ia.client.PythonDataClient;
+import com.observatorio.backend_ia.client.create_publication.CreatePublicationResponse;
+import com.observatorio.backend_ia.client.load_publication.LoadPublicationsResponse;
+import com.observatorio.backend_ia.commons.api.GenericResponse;
+import com.observatorio.backend_ia.commons.result.Result;
+import com.observatorio.backend_ia.service.PublicationService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/publications")
+@RequiredArgsConstructor
 public class PublicationController {
 
-    private final PythonDataClient pythonClient;
+    private final PublicationService publicationService;
 
-    public PublicationController(PythonDataClient pythonClient) {
-        this.pythonClient = pythonClient;
-    }
-
-    @GetMapping
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<?> getAll() {
-        return pythonClient.getAllPublications();
-    }
-
-    @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<?> getById(@PathVariable String id) {
-        return pythonClient.getPublicationById(id);
-    }
-
-    @PostMapping
+    @PostMapping(
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> create(@RequestBody String publicationJson) {
-        return pythonClient.createPublication(publicationJson);
+    public ResponseEntity<GenericResponse<CreatePublicationResponse>> create(
+            @RequestPart("file") MultipartFile file,
+            @RequestPart("payload_json") String payloadJson
+    ) {
+        Result<CreatePublicationResponse> res = publicationService.save(payloadJson, file);
+        return res.isSuccess() ?
+                ResponseEntity.ok(GenericResponse.createSuccessResponse(res.getValue())) :
+                ResponseEntity.status(400).body(GenericResponse.createErrorResponse(res.getError().getDescription()));
     }
 
     @PostMapping("/trigger-scrape")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> triggerScrape() {
-        return pythonClient.triggerScrape("observatorio", "uce");  // ajusta nombres
+    public ResponseEntity<GenericResponse<LoadPublicationsResponse>> triggerScrape() {
+        Result<LoadPublicationsResponse> res = publicationService.loadPublications();
+        return res.isSuccess() ?
+                ResponseEntity.ok(GenericResponse.createSuccessResponse(res.getValue())) :
+                ResponseEntity.status(400).body(GenericResponse.createErrorResponse(res.getError().getDescription()));
     }
 }

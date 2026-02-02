@@ -1,25 +1,27 @@
 package com.observatorio.backend_ia.client;
 
+import com.observatorio.backend_ia.client.create_publication.CreatePublicationResponse;
+import com.observatorio.backend_ia.client.load_publication.LoadPublicationRequest;
+import com.observatorio.backend_ia.client.load_publication.LoadPublicationsResponse;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @FeignClient(name = "python-scraper", url = "${python.service.url}")
 public interface PythonDataClient {
 
-    @GetMapping("/publications")
-    ResponseEntity<String> getAllPublications();
+    @PostMapping(
+            value = "/publications",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    ResponseEntity<CreatePublicationResponse> createPublication(
+            @RequestPart("file") MultipartFile file,
+            @RequestPart("payload_json") String payloadJson
+    );
 
-    @GetMapping("/publications/{id}")
-    ResponseEntity<String> getPublicationById(@PathVariable String id);
-
-    @PostMapping("/publications")
-    ResponseEntity<String> createPublication(@RequestBody String publicationJson);
-
-    @PostMapping("/schedule.json")
-    ResponseEntity<String> triggerScrape(@RequestParam("project") String project, @RequestParam("spider") String spider);
+    @PostMapping("/load")
+    ResponseEntity<LoadPublicationsResponse> triggerScrape(@RequestBody LoadPublicationRequest request);
 }
