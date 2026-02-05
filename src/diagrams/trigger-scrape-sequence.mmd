@@ -1,0 +1,57 @@
+%% trigger-scrape-sequence.mmd
+%% Diagrama de secuencia (Mermaid) para el endpoint /api/publications/trigger-scrape
+
+sequenceDiagram
+    autonumber
+    participant Client as Cliente
+    participant Controller as PublicationController
+    participant Security as SecurityFilter (Auth)
+    participant Service as PublicationService
+    participant Python as DocumentCollector (microservicio Python)
+    participant DSpace as DSpace API (Repositorio UCE)
+    participant DB as Database
+
+    Client->>Controller: POST /api/publications/trigger-scrape
+    Controller->>Security: Validar token y rol (hasRole('ADMIN'))
+    alt No autenticado o sin rol
+        Security-->>Controller: 401/403
+        Controller-->>Client: 401/403 Error (no autorizado)
+    else Autenticado y con rol
+        Controller->>Service: triggerScrape()
+        Service->>Python: Solicitar sincronización de publicaciones
+        Python->>DSpace: Consumir API paginada (size=100, page=0...n)
+        loop por cada página (100 registros)
+            DSpace-->>Python: Lista de publicaciones (100)
+            loop por cada publicación en la página
+                Python->>DB: Verificar si existe por UUID
+                alt Existe (ya en DB)
+                    DB-->>Python: Encontrado -> Ignorar
+                else No existe
+                    Python->>Python: Clasificar (¿relacionada con IA?)
+                    alt Relacionada con IA
+                        Python->>DB: Guardar en tabla `publication`
+                        DB-->>Python: ID del registro creado
+                    else No relacionada
+                        Python->>DB: Guardar en tabla `excluded_publication`
+                        DB-->>Python: ID del registro excluido
+                    end
+                end
+            end
+            Python->>DSpace: Solicitar siguiente página (si la hay)
+        end
+        Note over Python,DB: Tras procesar todas las páginas, obtener registros nuevos en `publication`
+        Python->>DSpace: Para cada nuevo registro en `publication`, obtener enlaces públicos (pdf)
+        DSpace-->>Python: Enlaces públicos (si existen)
+        Python->>DB: Guardar/actualizar campo de link pdf en `publication`
+
+        Python-->>Service: Respuesta con cantidad de nuevos registros guardados en `publication`
+        Service-->>Controller: Result.success (count)
+        Controller-->>Client: 200 OK { newPublicationsCount }
+    end
+
+    Note over Controller,Python: Manejo de errores: Si falla la conexión a DSpace o hay error interno
+    Python-->>Service: Result.error (500, descripción)
+    Service-->>Controller: Result.error (500, descripción)
+    Controller-->>Client: 500 Internal Server Error (detalle)
+
+    Note right of Client: Respuesta final -> número de nuevas publicaciones guardadas en `publication`

@@ -1,0 +1,55 @@
+%% layers-architecture.mmd
+%% Diagrama simple de arquitectura por capas (Mermaid)
+
+flowchart LR
+  Client["Cliente<br/>(Frontend / Postman)"]
+  Auth["Spring Security<br/>(JWT)"]
+  Controller["Controllers<br/>(PublicationController, EmailController)"]
+  Service["Services<br/>(PublicationService, EmailService)"]
+  Repository["Repositories<br/>(Spring Data JPA)"]
+  Model["Model / Entidades<br/>(User, Publication, ...)"]
+  DB[(Base de Datos)]
+  External["Servicios externos"]
+  DocCollector["Document Collector<br/>(microservicio externo)"]
+  SMTP["SMTP (smtp.gmail.com)"]
+  Templates["Thymeleaf<br/>templates"]
+
+  Client -->|HTTP| Controller
+  Controller -->|Auth filter| Auth
+  Auth --> Controller
+  Controller -->|orquesta| Service
+  Service -->|persistencia| Repository
+  Repository -->|JPA| DB
+  Service --> Model
+  Service -->|llama| DocCollector
+  Service -->|envía email| SMTP
+  Controller -->|render| Templates
+
+  subgraph "Capa de Entrada"
+    Controller
+  end
+
+  subgraph "Capa de Negocio"
+    Service
+  end
+
+  subgraph "Capa de Persistencia"
+    Repository
+    DB
+  end
+
+  subgraph "Adaptadores / Integraciones"
+    DocCollector
+    SMTP
+    Templates
+  end
+
+  style Client fill:#f9f,stroke:#333,stroke-width:1px
+  style Auth fill:#ffd,stroke:#333
+  style Controller fill:#bbf,stroke:#333
+  style Service fill:#bfb,stroke:#333
+  style Repository fill:#fbf,stroke:#333
+  style DB fill:#fff,stroke:#333
+  style DocCollector fill:#eef,stroke:#333
+  style SMTP fill:#eef,stroke:#333
+  style Templates fill:#efe,stroke:#333

@@ -1,0 +1,44 @@
+%% publications-sequence.mmd
+%% Diagrama de secuencia (Mermaid) para el endpoint /api/publications
+
+sequenceDiagram
+    autonumber
+    participant Client as Cliente
+    participant Controller as PublicationController
+    participant Security as SecurityFilter (Auth)
+    participant Service as PublicationService
+    participant Python as DocumentCollector (microservicio Python)
+    participant Supabase as SupabaseStorage
+    participant DB as Database
+
+    Client->>Controller: POST /api/publications (multipart: file + payload_json)
+    Controller->>Security: Validar token y rol (hasRole('ADMIN'))
+    alt No autenticado o sin rol
+        Security-->>Controller: 401/403
+        Controller-->>Client: 401/403 Error (no autorizado)
+    else Autenticado y con rol
+        Controller->>Service: save(payloadJson, file)
+        Service->>Service: Parsear payloadJson y validar campos requeridos
+        alt Falta campo requerido o no viene PDF
+            Service-->>Controller: Result.error (400, mensaje de validación)
+            Controller-->>Client: 400 Bad Request (detalle de campos faltantes)
+        else Campos válidos y PDF presente
+            Service->>Python: Enviar payload + PDF al microservicio
+            Python->>Supabase: Subir PDF a Supabase Storage
+            Supabase-->>Python: URL/clave del archivo
+            Python->>DB: Crear registro de publicación (incluye URL del PDF)
+            DB-->>Python: ID del registro creado
+            Python-->>Service: Respuesta (201 Created, id)
+            Service-->>Controller: Result.success (id de la publicación)
+            Controller-->>Client: 200 OK { id }
+        end
+    end
+
+    %% Notas de error generales
+    Note over Controller,Service: Si ocurre un error en el microservicio o en Supabase
+    Service-->>Controller: Result.error (500, descripción)
+    Controller-->>Client: 500 Internal Server Error (detalle)
+
+    %% Mensaje final
+    Note right of Client: Resultado exitoso -> id devuelto
+    Note right of Client: Resultado con error -> mensaje y código HTTP correspondiente
