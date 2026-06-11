@@ -1,38 +1,42 @@
-package com.observatorio.backend_ia.service;
+package com.observatorio.backend_ia.service.email;
 
 import com.sendgrid.Method;
 import com.sendgrid.Request;
 import com.sendgrid.SendGrid;
-import com.sendgrid.helpers.mail.Mail;
-import com.sendgrid.helpers.mail.objects.Content;
-import com.sendgrid.helpers.mail.objects.Email;
 import com.sendgrid.helpers.mail.objects.Personalization;
 import jakarta.annotation.PostConstruct;
 import jakarta.mail.MessagingException;
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
+import com.sendgrid.helpers.mail.Mail;
+import com.sendgrid.helpers.mail.objects.Content;
+import com.sendgrid.helpers.mail.objects.Email;;
 
-@Service
-@RequiredArgsConstructor
-public class EmailService {
+@Slf4j
+@Component
+@ConditionalOnProperty(name = "app.email.provider", havingValue = "sendgrid")
+public class SendGridEmailProvider implements EmailProvider {
 
     private final TemplateEngine templateEngine;
 
     @Value("${sendgrid.api.key:}")
     private String sendgridApiKey;
 
-    // destinatario por defecto (app.default.recipient)
     @Value("${app.default.recipient:}")
     private String defaultRecipient;
 
-    // remitente configurable
     @Value("${app.mail.from:cristru8@gmail.com}")
     private String mailFrom;
 
     private SendGrid sendGridClient;
+
+    public SendGridEmailProvider(TemplateEngine templateEngine) {
+        this.templateEngine = templateEngine;
+    }
 
     @PostConstruct
     private void init() {
@@ -41,12 +45,12 @@ public class EmailService {
         }
     }
 
+    @Override
     public void sendIdeaEmail(String to, String name, String idea, String ethicalConcern) throws MessagingException {
         if (sendGridClient == null) {
             throw new IllegalStateException("SendGrid API key not configured");
         }
 
-        // usa destinatario por defecto si no se proporciona
         String recipient = to;
         if (recipient == null || recipient.trim().isEmpty()) {
             if (defaultRecipient == null || defaultRecipient.trim().isEmpty()) {
@@ -78,7 +82,6 @@ public class EmailService {
         Request request = new Request();
         try {
             request.setMethod(Method.POST);
-            // con la librería oficial se debe usar "mail/send" como endpoint (sin prefijo /v3)
             request.setEndpoint("mail/send");
             request.setBody(mail.build());
             com.sendgrid.Response response = sendGridClient.api(request);
@@ -91,5 +94,10 @@ public class EmailService {
         } catch (Exception ex) {
             throw new MessagingException("Failed to send email via SendGrid: " + ex.getMessage());
         }
+    }
+
+    @Override
+    public String providerName() {
+        return "sendgrid";
     }
 }
