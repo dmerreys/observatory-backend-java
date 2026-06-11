@@ -1,7 +1,7 @@
 package com.observatorio.backend_ia.controller;
 
 import com.observatorio.backend_ia.commons.api.GenericResponse;
-import com.observatorio.backend_ia.service.EmailService;
+import com.observatorio.backend_ia.service.email.EmailService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
