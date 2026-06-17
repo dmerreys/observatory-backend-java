@@ -36,8 +36,17 @@ public class PublicationController {
 
     @PostMapping("/trigger-scrape")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<GenericResponse<LoadPublicationsResponse>> triggerScrape() {
+    public ResponseEntity<GenericResponse<LoadPublicationsResponse>> triggerDspaceScrape() {
         Result<LoadPublicationsResponse> res = publicationService.loadPublications();
+        return res.isSuccess() ?
+                ResponseEntity.ok(GenericResponse.createSuccessResponse(res.getValue())) :
+                ResponseEntity.status(400).body(GenericResponse.createErrorResponse(res.getError().getDescription()));
+    }
+
+    @PostMapping("/trigger-scrape-journals")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<GenericResponse<LoadPublicationsResponse>> triggerJournalScrape() {
+        Result<LoadPublicationsResponse> res = publicationService.loadJournals();
         return res.isSuccess() ?
                 ResponseEntity.ok(GenericResponse.createSuccessResponse(res.getValue())) :
                 ResponseEntity.status(400).body(GenericResponse.createErrorResponse(res.getError().getDescription()));
