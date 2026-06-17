@@ -24,4 +24,10 @@ public interface PythonDataClient {
 
     @PostMapping("/load")
     ResponseEntity<LoadPublicationsResponse> triggerScrape(@RequestBody LoadPublicationRequest request);
+
+    @PostMapping("/load/oai")
+    ResponseEntity<LoadPublicationsResponse> triggerJournalScrape(
+            @RequestBody LoadPublicationRequest request,
+            @RequestParam(defaultValue = "true") boolean background
+    );
 }

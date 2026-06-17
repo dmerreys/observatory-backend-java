@@ -76,6 +76,23 @@ public class PublicationService {
         }
     }
 
+    public Result<LoadPublicationsResponse> loadJournals() {
+        LoadPublicationRequest request = new LoadPublicationRequest();
+        request.setMethod("regex");
+
+        ResponseEntity<LoadPublicationsResponse> response = pythonDataClient.triggerJournalScrape(request, false);
+        if (response.getStatusCode().is2xxSuccessful()) {
+            LoadPublicationsResponse responseBody = response.getBody();
+            if (responseBody != null) {
+                return Result.success(responseBody);
+            } else {
+                return Result.failure(Error.failure(response.getStatusCode().toString(), "No se pudo obtener la respuesta de la carga de publicaciones"));
+            }
+        } else {
+            return Result.failure(Error.failure(response.getStatusCode().toString(), "Hubo un problema al cargar las publicaciones"));
+        }
+    }
+
     private PublicationRequest parseJson(String payloadJson) {
         try {
             return objectMapper.readValue(payloadJson, PublicationRequest.class);
