@@ -17,6 +17,7 @@ public record PublicationRequest(
         List<@NotBlank(message = "subject must not be blank") String> subjects,
         @NotEmpty(message = "contributors must not be empty")
         @Valid
-        List<ContributorRequest> contributors
+        List<ContributorRequest> contributors,
+        String type
 ) {
 }
