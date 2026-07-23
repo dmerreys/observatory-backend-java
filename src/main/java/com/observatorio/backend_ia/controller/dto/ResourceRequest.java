@@ -1,6 +1,7 @@
 // controller/dto/ResourceRequest.java
 package com.observatorio.backend_ia.controller.dto;
 
+import com.observatorio.backend_ia.model.enums.ResourceTopic;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -18,4 +19,6 @@ public class ResourceRequest {
     private String url;
 
     private String source;
+
+    private ResourceTopic topic;
 }

@@ -1,5 +1,6 @@
 package com.observatorio.backend_ia.model;
 
+import com.observatorio.backend_ia.model.enums.ResourceTopic;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -27,6 +28,10 @@ public class Resource {
 
     @Column(length = 200)
     private String source;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 50)
+    private ResourceTopic topic = ResourceTopic.GENERAL;
 
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();

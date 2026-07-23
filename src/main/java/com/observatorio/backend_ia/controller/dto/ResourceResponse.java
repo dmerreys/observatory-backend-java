@@ -1,6 +1,7 @@
 // controller/dto/ResourceResponse.java
 package com.observatorio.backend_ia.controller.dto;
 
+import com.observatorio.backend_ia.model.enums.ResourceTopic;
 import lombok.Data;
 import java.time.LocalDateTime;
 
@@ -12,5 +13,6 @@ public class ResourceResponse {
     private String type;
     private String url;
     private String source;
+    private ResourceTopic topic;
     private LocalDateTime createdAt;
 }

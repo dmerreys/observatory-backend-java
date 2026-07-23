@@ -44,6 +44,7 @@ public class ResourceController {
         resource.setType(request.getType());
         resource.setUrl(request.getUrl());
         resource.setSource(request.getSource());
+        resource.setTopic(request.getTopic());
 
         Resource saved = resourceRepository.save(resource);
         return ResponseEntity.ok(GenericResponse.createSuccessResponse(toResponse(saved)));
@@ -68,6 +69,7 @@ public class ResourceController {
         dto.setType(r.getType());
         dto.setUrl(r.getUrl());
         dto.setSource(r.getSource());
+        dto.setTopic(r.getTopic());
         dto.setCreatedAt(r.getCreatedAt());
         return dto;
     }
