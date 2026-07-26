@@ -21,4 +21,6 @@ public class ResourceRequest {
     private String source;
 
     private ResourceTopic topic;
+
+    private Boolean featured;
 }
