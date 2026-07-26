@@ -34,6 +34,9 @@ public class Resource {
     private ResourceTopic topic = ResourceTopic.GENERAL;
 
     @Column(nullable = false)
+    private boolean featured = false;
+
+    @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
     private LocalDateTime updatedAt;

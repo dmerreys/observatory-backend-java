@@ -14,5 +14,6 @@ public class ResourceResponse {
     private String url;
     private String source;
     private ResourceTopic topic;
+    private boolean featured;
     private LocalDateTime createdAt;
 }
