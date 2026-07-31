@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS ideas (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(200) NOT NULL,
+    idea TEXT NOT NULL,
+    ethical_concern TEXT,
+    status VARCHAR(30) NOT NULL DEFAULT 'PENDIENTE_REVISION',
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP
+);
