@@ -10,12 +10,11 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class EmailRequest {
+public class IdeaRequest {
 
     @NotBlank(message = "name is required")
     private String name;
 
-    // idea and ethicalConcern can be large texts
     @NotBlank(message = "idea is required")
     private String idea;
 
