@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/resources")
@@ -72,6 +73,42 @@ public class ResourceController {
             existingFeatured.ifPresent(featured -> {
                 featured.setFeatured(false);
                 resourceRepository.save(featured);
+            });
+        }
+
+        Resource saved = resourceRepository.save(resource);
+        return ResponseEntity.ok(GenericResponse.createSuccessResponse(toResponse(saved)));
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<GenericResponse<ResourceResponse>> update(
+            @PathVariable Long id,
+            @RequestBody ResourceRequest request) {
+        Optional<Resource> existingOpt = resourceRepository.findById(id);
+        if (existingOpt.isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(GenericResponse.createErrorResponse("Recurso no encontrado"));
+        }
+
+        Resource resource = existingOpt.get();
+        resource.setTitle(request.getTitle());
+        resource.setDescription(request.getDescription());
+        resource.setType(request.getType());
+        resource.setUrl(request.getUrl());
+        resource.setSource(request.getSource());
+        resource.setTopic(request.getTopic());
+        resource.setFeatured(Boolean.TRUE.equals(request.getFeatured()));
+        resource.setUpdatedAt(LocalDateTime.now());
+
+        if (resource.isFeatured() && resource.getTopic() != null) {
+            Optional<Resource> existingFeatured = resourceRepository
+                    .findByTopicAndFeaturedTrue(resource.getTopic());
+            existingFeatured.ifPresent(featured -> {
+                if (!featured.getId().equals(resource.getId())) {
+                    featured.setFeatured(false);
+                    resourceRepository.save(featured);
+                }
             });
         }
 
