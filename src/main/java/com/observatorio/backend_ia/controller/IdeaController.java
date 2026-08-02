@@ -2,6 +2,7 @@ package com.observatorio.backend_ia.controller;
 
 import com.observatorio.backend_ia.commons.api.GenericResponse;
 import com.observatorio.backend_ia.model.Idea;
+import com.observatorio.backend_ia.model.enums.IdeaStatus;
 import com.observatorio.backend_ia.service.IdeaService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
@@ -41,8 +42,9 @@ public class IdeaController {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GenericResponse<Page<Idea>>> getAllIdeas(
+            @RequestParam(required = false) IdeaStatus status,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<Idea> ideas = ideaService.getAllIdeas(pageable);
+        Page<Idea> ideas = ideaService.getAllIdeas(pageable, status);
         return ResponseEntity.ok(GenericResponse.createSuccessResponse(ideas));
     }
 
