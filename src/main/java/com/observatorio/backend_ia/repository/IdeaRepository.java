@@ -10,5 +10,7 @@ public interface IdeaRepository extends JpaRepository<Idea, Long> {
 
     Page<Idea> findByStatus(IdeaStatus status, Pageable pageable);
 
+    Page<Idea> findByStatusOrderByCreatedAtDesc(IdeaStatus status, Pageable pageable);
+
     Page<Idea> findAllByOrderByCreatedAtDesc(Pageable pageable);
 }

@@ -48,8 +48,11 @@ public class IdeaService {
         return ideaRepository.findByStatus(IdeaStatus.APROBADO, pageable);
     }
 
-    public Page<Idea> getAllIdeas(Pageable pageable) {
-        return ideaRepository.findAllByOrderByCreatedAtDesc(pageable);
+    public Page<Idea> getAllIdeas(Pageable pageable, IdeaStatus status) {
+        if (status == null) {
+            return ideaRepository.findAllByOrderByCreatedAtDesc(pageable);
+        }
+        return ideaRepository.findByStatusOrderByCreatedAtDesc(status, pageable);
     }
 
     @Transactional
