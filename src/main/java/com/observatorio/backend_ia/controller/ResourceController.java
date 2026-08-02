@@ -9,6 +9,10 @@ import com.observatorio.backend_ia.model.Resource;
 import com.observatorio.backend_ia.model.enums.ResourceTopic;
 import com.observatorio.backend_ia.repository.ResourceRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +34,19 @@ public class ResourceController {
         List<Resource> resources = resourceRepository.findAllByOrderByCreatedAtDesc();
         List<ResourceResponse> dtos = resources.stream().map(this::toResponse).collect(Collectors.toList());
         return ResponseEntity.ok(GenericResponse.createSuccessResponse(dtos));
+    }
+
+    @GetMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<GenericResponse<Page<ResourceResponse>>> getAdminPage(
+            @RequestParam(required = false) ResourceTopic topic,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) Boolean featured,
+            @RequestParam(required = false) String search,
+            @PageableDefault(size = 12, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        String pattern = search == null ? null : "%" + search.toLowerCase() + "%";
+        Page<Resource> resources = resourceRepository.searchAdmin(topic, type, featured, pattern, pageable);
+        return ResponseEntity.ok(GenericResponse.createSuccessResponse(resources.map(this::toResponse)));
     }
 
     @GetMapping("/type/{type}")
