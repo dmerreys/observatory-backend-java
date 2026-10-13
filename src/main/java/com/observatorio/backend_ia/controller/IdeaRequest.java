@@ -1,6 +1,8 @@
 package com.observatorio.backend_ia.controller;
 
+import com.observatorio.backend_ia.model.enums.IdeaCategory;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,6 +19,9 @@ public class IdeaRequest {
 
     @NotBlank(message = "idea is required")
     private String idea;
+
+    @NotNull(message = "category is required")
+    private IdeaCategory category;
 
     private String ethicalConcern;
 }

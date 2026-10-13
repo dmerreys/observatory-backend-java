@@ -2,6 +2,7 @@ package com.observatorio.backend_ia.controller;
 
 import com.observatorio.backend_ia.commons.api.GenericResponse;
 import com.observatorio.backend_ia.model.Idea;
+import com.observatorio.backend_ia.model.enums.IdeaCategory;
 import com.observatorio.backend_ia.model.enums.IdeaStatus;
 import com.observatorio.backend_ia.service.IdeaService;
 import jakarta.persistence.EntityNotFoundException;
@@ -25,8 +26,11 @@ public class IdeaController {
     @PostMapping
     public ResponseEntity<GenericResponse<Idea>> sendIdea(@Valid @RequestBody IdeaRequest request) {
         try {
-            Idea idea = ideaService.sendIdea(request.getName(), request.getIdea(), request.getEthicalConcern());
+            Idea idea = ideaService.sendIdea(
+                    request.getName(), request.getIdea(), request.getCategory(), request.getEthicalConcern());
             return ResponseEntity.ok(GenericResponse.createSuccessResponse(idea, java.util.List.of("Idea enviada correctamente")));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400).body(GenericResponse.createErrorResponse(e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(GenericResponse.createErrorResponse("Error al enviar la idea: " + e.getMessage()));
         }
@@ -34,8 +38,9 @@ public class IdeaController {
 
     @GetMapping("/approved")
     public ResponseEntity<GenericResponse<Page<Idea>>> getApprovedIdeas(
+            @RequestParam(required = false) IdeaCategory category,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<Idea> ideas = ideaService.getApprovedIdeas(pageable);
+        Page<Idea> ideas = ideaService.getApprovedIdeas(pageable, category);
         return ResponseEntity.ok(GenericResponse.createSuccessResponse(ideas));
     }
 
@@ -43,8 +48,9 @@ public class IdeaController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GenericResponse<Page<Idea>>> getAllIdeas(
             @RequestParam(required = false) IdeaStatus status,
+            @RequestParam(required = false) IdeaCategory category,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<Idea> ideas = ideaService.getAllIdeas(pageable, status);
+        Page<Idea> ideas = ideaService.getAllIdeas(pageable, status, category);
         return ResponseEntity.ok(GenericResponse.createSuccessResponse(ideas));
     }
 

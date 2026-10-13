@@ -1,6 +1,7 @@
 package com.observatorio.backend_ia.repository;
 
 import com.observatorio.backend_ia.model.Idea;
+import com.observatorio.backend_ia.model.enums.IdeaCategory;
 import com.observatorio.backend_ia.model.enums.IdeaStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,7 +11,13 @@ public interface IdeaRepository extends JpaRepository<Idea, Long> {
 
     Page<Idea> findByStatus(IdeaStatus status, Pageable pageable);
 
+    Page<Idea> findByStatusAndCategory(IdeaStatus status, IdeaCategory category, Pageable pageable);
+
     Page<Idea> findByStatusOrderByCreatedAtDesc(IdeaStatus status, Pageable pageable);
+
+    Page<Idea> findByCategoryOrderByCreatedAtDesc(IdeaCategory category, Pageable pageable);
+
+    Page<Idea> findByStatusAndCategoryOrderByCreatedAtDesc(IdeaStatus status, IdeaCategory category, Pageable pageable);
 
     Page<Idea> findAllByOrderByCreatedAtDesc(Pageable pageable);
 }

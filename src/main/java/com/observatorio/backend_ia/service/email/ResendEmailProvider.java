@@ -1,5 +1,6 @@
 package com.observatorio.backend_ia.service.email;
 
+import com.observatorio.backend_ia.model.enums.IdeaCategory;
 import com.resend.Resend;
 import com.resend.core.exception.ResendException;
 import com.resend.services.emails.model.CreateEmailOptions;
@@ -34,7 +35,7 @@ public class ResendEmailProvider implements EmailProvider {
     }
 
     @Override
-    public void sendIdeaEmail(String to, String name, String idea, String ethicalConcern) throws MessagingException {
+    public void sendIdeaEmail(String to, String name, String idea, IdeaCategory category, String ethicalConcern) throws MessagingException {
         String recipient = to;
         if (recipient == null || recipient.trim().isEmpty()) {
             if (defaultRecipient == null || defaultRecipient.trim().isEmpty()) {
@@ -46,6 +47,7 @@ public class ResendEmailProvider implements EmailProvider {
         Context context = new Context();
         context.setVariable("name", name);
         context.setVariable("idea", idea);
+        context.setVariable("category", category != null ? category.name() : "");
         context.setVariable("ethicalConcern", ethicalConcern);
 
         String html = templateEngine.process("email/idea-email", context);
@@ -54,7 +56,7 @@ public class ResendEmailProvider implements EmailProvider {
             CreateEmailOptions options = CreateEmailOptions.builder()
                     .from(fromAddress)
                     .to(recipient)
-                    .subject("Nueva idea enviada por " + name)
+                    .subject(buildSubject(category, name))
                     .html(html)
                     .build();
 
@@ -65,6 +67,15 @@ public class ResendEmailProvider implements EmailProvider {
             log.error("Error al enviar email via Resend: {}", e.getMessage());
             throw new MessagingException("Fallo al enviar email con Resend: " + e.getMessage());
         }
+    }
+
+    private String buildSubject(IdeaCategory category, String name) {
+        return switch (category) {
+            case SUGERENCIA -> "Nueva sugerencia de " + name;
+            case COMENTARIO -> "Nuevo comentario de " + name;
+            case REPORTE_ERROR -> "Error reportado por " + name;
+            default -> "Nueva idea (" + (category != null ? category.name() : "") + ") de " + name;
+        };
     }
 
     @Override

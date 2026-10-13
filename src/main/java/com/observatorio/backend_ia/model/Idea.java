@@ -1,5 +1,6 @@
 package com.observatorio.backend_ia.model;
 
+import com.observatorio.backend_ia.model.enums.IdeaCategory;
 import com.observatorio.backend_ia.model.enums.IdeaStatus;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -22,6 +23,10 @@ public class Idea {
 
     @Column(columnDefinition = "TEXT")
     private String ethicalConcern;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private IdeaCategory category = IdeaCategory.SUGERENCIA;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
