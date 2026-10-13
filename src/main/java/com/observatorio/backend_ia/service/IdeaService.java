@@ -1,6 +1,7 @@
 package com.observatorio.backend_ia.service;
 
 import com.observatorio.backend_ia.model.Idea;
+import com.observatorio.backend_ia.model.enums.IdeaCategory;
 import com.observatorio.backend_ia.model.enums.IdeaStatus;
 import com.observatorio.backend_ia.repository.IdeaRepository;
 import com.observatorio.backend_ia.service.email.EmailService;
@@ -26,17 +27,23 @@ public class IdeaService {
     @Value("${app.default.recipient}")
     private String defaultRecipient;
 
-    public Idea sendIdea(String name, String idea, String ethicalConcern) {
+    public Idea sendIdea(String name, String idea, IdeaCategory category, String ethicalConcern) {
+        if (category == null) {
+            throw new IllegalArgumentException("La categoría es obligatoria");
+        }
+        String sanitizedEthicalConcern = sanitizeEthicalConcern(category, ethicalConcern);
+
         Idea entity = new Idea();
         entity.setName(name);
         entity.setIdea(idea);
-        entity.setEthicalConcern(ethicalConcern);
+        entity.setCategory(category);
+        entity.setEthicalConcern(sanitizedEthicalConcern);
         entity.setStatus(IdeaStatus.PENDIENTE_REVISION);
 
         entity = ideaRepository.save(entity);
 
         try {
-            emailService.sendIdeaEmail(defaultRecipient, name, idea, ethicalConcern);
+            emailService.sendIdeaEmail(defaultRecipient, name, idea, category, sanitizedEthicalConcern);
         } catch (MessagingException e) {
             log.error("Error al enviar el correo de la idea", e);
         }
@@ -44,15 +51,24 @@ public class IdeaService {
         return entity;
     }
 
-    public Page<Idea> getApprovedIdeas(Pageable pageable) {
-        return ideaRepository.findByStatus(IdeaStatus.APROBADO, pageable);
+    public Page<Idea> getApprovedIdeas(Pageable pageable, IdeaCategory category) {
+        if (category == null) {
+            return ideaRepository.findByStatus(IdeaStatus.APROBADO, pageable);
+        }
+        return ideaRepository.findByStatusAndCategory(IdeaStatus.APROBADO, category, pageable);
     }
 
-    public Page<Idea> getAllIdeas(Pageable pageable, IdeaStatus status) {
-        if (status == null) {
-            return ideaRepository.findAllByOrderByCreatedAtDesc(pageable);
+    public Page<Idea> getAllIdeas(Pageable pageable, IdeaStatus status, IdeaCategory category) {
+        if (status != null && category != null) {
+            return ideaRepository.findByStatusAndCategoryOrderByCreatedAtDesc(status, category, pageable);
         }
-        return ideaRepository.findByStatusOrderByCreatedAtDesc(status, pageable);
+        if (status != null) {
+            return ideaRepository.findByStatusOrderByCreatedAtDesc(status, pageable);
+        }
+        if (category != null) {
+            return ideaRepository.findByCategoryOrderByCreatedAtDesc(category, pageable);
+        }
+        return ideaRepository.findAllByOrderByCreatedAtDesc(pageable);
     }
 
     @Transactional
@@ -62,9 +78,10 @@ public class IdeaService {
 
         IdeaStatus current = idea.getStatus();
 
-        if (!isValidTransition(current, newStatus)) {
+        if (!isValidTransition(current, newStatus, idea.getCategory())) {
             throw new IllegalStateException(
                     "No se puede cambiar el estado de " + current + " a " + newStatus
+                            + " para la categoría " + idea.getCategory()
             );
         }
 
@@ -73,10 +90,20 @@ public class IdeaService {
         return ideaRepository.save(idea);
     }
 
-    private boolean isValidTransition(IdeaStatus current, IdeaStatus newStatus) {
+    private String sanitizeEthicalConcern(IdeaCategory category, String ethicalConcern) {
+        boolean hasContent = ethicalConcern != null && !ethicalConcern.isBlank();
+        if (!category.allowsEthicalConcern() && hasContent) {
+            throw new IllegalArgumentException(
+                    "La consideración ética solo aplica a SUGERENCIA"
+            );
+        }
+        return hasContent ? ethicalConcern : null;
+    }
+
+    private boolean isValidTransition(IdeaStatus current, IdeaStatus newStatus, IdeaCategory category) {
         return switch (current) {
             case PENDIENTE_REVISION -> newStatus == IdeaStatus.APROBADO || newStatus == IdeaStatus.RECHAZADO;
-            case APROBADO -> newStatus == IdeaStatus.HECHO;
+            case APROBADO -> newStatus == IdeaStatus.HECHO && category.allowsDoneStatus();
             case RECHAZADO, HECHO -> false;
         };
     }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nueva idea - Observatorio de IA</title>
+    <title th:text="${category == null or category == '' ? 'Nueva idea - Observatorio de IA' : (category == 'SUGERENCIA' ? 'Nueva sugerencia' : (category == 'COMENTARIO' ? 'Nuevo comentario' : (category == 'REPORTE_ERROR' ? 'Error reportado' : 'Nueva idea'))) + ' - Observatorio de IA'}">Nueva idea - Observatorio de IA</title>
     <!--[if mso]>
     <style type="text/css">
         table {border-collapse: collapse;}
@@ -23,9 +23,19 @@
                             <tr>
                                 <td style="text-align: center;">
                                     <div style="display: inline-block; background-color: rgba(255, 255, 255, 0.25); border-radius: 25px; padding: 8px 20px; margin-bottom: 20px;">
-                                        <span style="color: #ffffff; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">✨ Nueva Propuesta</span>
+                                        <th:block th:switch="${category}">
+                                            <span th:case="'SUGERENCIA'" style="color: #ffffff; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">✨ Nueva Sugerencia</span>
+                                            <span th:case="'COMENTARIO'" style="color: #ffffff; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">💬 Nuevo Comentario</span>
+                                            <span th:case="'REPORTE_ERROR'" style="color: #ffffff; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">🐛 Error Reportado</span>
+                                            <span th:case="*" style="color: #ffffff; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">✨ Nueva Propuesta</span>
+                                        </th:block>
                                     </div>
-                                    <h1 style="margin: 0 0 12px 0; color: #ffffff; font-size: 36px; font-weight: 700; line-height: 1.2;">Idea Recibida</h1>
+                                    <th:block th:switch="${category}">
+                                        <h1 th:case="'SUGERENCIA'" style="margin: 0 0 12px 0; color: #ffffff; font-size: 36px; font-weight: 700; line-height: 1.2;">Sugerencia Recibida</h1>
+                                        <h1 th:case="'COMENTARIO'" style="margin: 0 0 12px 0; color: #ffffff; font-size: 36px; font-weight: 700; line-height: 1.2;">Comentario Recibido</h1>
+                                        <h1 th:case="'REPORTE_ERROR'" style="margin: 0 0 12px 0; color: #ffffff; font-size: 36px; font-weight: 700; line-height: 1.2;">Error Reportado</h1>
+                                        <h1 th:case="*" style="margin: 0 0 12px 0; color: #ffffff; font-size: 36px; font-weight: 700; line-height: 1.2;">Idea Recibida</h1>
+                                    </th:block>
                                     <p style="margin: 0; color: rgba(255, 255, 255, 0.9); font-size: 16px;">Contribución al Observatorio de IA</p>
                                 </td>
                             </tr>
@@ -68,9 +78,9 @@
                     <td style="height: 24px;"></td>
                 </tr>
 
-                <!-- Sección Propuesta -->
-                <tr>
-                    <td style="padding: 0 40px;">
+                <!-- Sección Contenido Dinámico según Categoría -->
+                <tr th:switch="${category}">
+                    <td th:case="'SUGERENCIA'" style="padding: 0 40px;">
                         <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc; border-radius: 12px; border-left: 4px solid #8b5cf6; padding: 24px;">
                             <tr>
                                 <td>
@@ -95,6 +105,105 @@
                                             <td style="padding-top: 16px;">
                                                 <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; position: relative;">
                                                     <div style="color: #64748b; font-size: 15px; line-height: 1.7; white-space: pre-wrap; word-wrap: break-word;" th:text="${idea}">Implementar un sistema de análisis de tendencias de IA usando machine learning para predecir desarrollos futuros en el sector tecnológico y sus implicaciones éticas.</div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td th:case="'COMENTARIO'" style="padding: 0 40px;">
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc; border-radius: 12px; border-left: 4px solid #06b6d4; padding: 24px;">
+                            <tr>
+                                <td>
+                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                        <tr>
+                                            <td>
+                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                                                    <tr>
+                                                        <td style="vertical-align: middle; padding-right: 12px;">
+                                                            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); border-radius: 10px; text-align: center; line-height: 40px;">
+                                                                <span style="font-size: 20px;">💬</span>
+                                                            </div>
+                                                        </td>
+                                                        <td style="vertical-align: middle;">
+                                                            <div style="color: #06b6d4; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Comentario</div>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding-top: 16px;">
+                                                <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; position: relative;">
+                                                    <div style="color: #64748b; font-size: 15px; line-height: 1.7; white-space: pre-wrap; word-wrap: break-word;" th:text="${idea}">Comparte tu opinión, feedback o experiencia general sobre el Observatorio.</div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td th:case="'REPORTE_ERROR'" style="padding: 0 40px;">
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc; border-radius: 12px; border-left: 4px solid #ef4444; padding: 24px;">
+                            <tr>
+                                <td>
+                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                        <tr>
+                                            <td>
+                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                                                    <tr>
+                                                        <td style="vertical-align: middle; padding-right: 12px;">
+                                                            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #ef4444 0%, #f97316 100%); border-radius: 10px; text-align: center; line-height: 40px;">
+                                                                <span style="font-size: 20px;">🐛</span>
+                                                            </div>
+                                                        </td>
+                                                        <td style="vertical-align: middle;">
+                                                            <div style="color: #ef4444; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Detalle del Error</div>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding-top: 16px;">
+                                                <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; position: relative;">
+                                                    <div style="color: #64748b; font-size: 15px; line-height: 1.7; white-space: pre-wrap; word-wrap: break-word;" th:text="${idea}">Detalla el bug o problema: qué pasa, pasos para reproducirlo, qué esperabas que ocurriera.</div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td th:case="*" style="padding: 0 40px;">
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc; border-radius: 12px; border-left: 4px solid #8b5cf6; padding: 24px;">
+                            <tr>
+                                <td>
+                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                        <tr>
+                                            <td>
+                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                                                    <tr>
+                                                        <td style="vertical-align: middle; padding-right: 12px;">
+                                                            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); border-radius: 10px; text-align: center; line-height: 40px;">
+                                                                <span style="font-size: 20px;">💡</span>
+                                                            </div>
+                                                        </td>
+                                                        <td style="vertical-align: middle;">
+                                                            <div style="color: #8b5cf6; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Propuesta</div>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding-top: 16px;">
+                                                <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; position: relative;">
+                                                    <div style="color: #64748b; font-size: 15px; line-height: 1.7; white-space: pre-wrap; word-wrap: break-word;" th:text="${idea}">Contenido de la idea.</div>
                                                 </div>
                                             </td>
                                         </tr>

@@ -1,5 +1,6 @@
 package com.observatorio.backend_ia.service.email;
 
+import com.observatorio.backend_ia.model.enums.IdeaCategory;
 import com.sendgrid.Method;
 import com.sendgrid.Request;
 import com.sendgrid.SendGrid;
@@ -46,7 +47,7 @@ public class SendGridEmailProvider implements EmailProvider {
     }
 
     @Override
-    public void sendIdeaEmail(String to, String name, String idea, String ethicalConcern) throws MessagingException {
+    public void sendIdeaEmail(String to, String name, String idea, IdeaCategory category, String ethicalConcern) throws MessagingException {
         if (sendGridClient == null) {
             throw new IllegalStateException("SendGrid API key not configured");
         }
@@ -62,6 +63,7 @@ public class SendGridEmailProvider implements EmailProvider {
         Context context = new Context();
         context.setVariable("name", name);
         context.setVariable("idea", idea);
+        context.setVariable("category", category != null ? category.name() : "");
         context.setVariable("ethicalConcern", ethicalConcern);
 
         String html = templateEngine.process("email/idea-email", context);
@@ -72,7 +74,7 @@ public class SendGridEmailProvider implements EmailProvider {
 
         Mail mail = new Mail();
         mail.setFrom(from);
-        mail.setSubject("Nueva idea enviada por " + name);
+        mail.setSubject(buildSubject(category, name));
         mail.addContent(content);
 
         Personalization personalization = new Personalization();
@@ -94,6 +96,15 @@ public class SendGridEmailProvider implements EmailProvider {
         } catch (Exception ex) {
             throw new MessagingException("Failed to send email via SendGrid: " + ex.getMessage());
         }
+    }
+
+    private String buildSubject(IdeaCategory category, String name) {
+        return switch (category) {
+            case SUGERENCIA -> "Nueva sugerencia de " + name;
+            case COMENTARIO -> "Nuevo comentario de " + name;
+            case REPORTE_ERROR -> "Error reportado por " + name;
+            default -> "Nueva idea (" + (category != null ? category.name() : "") + ") de " + name;
+        };
     }
 
     @Override
